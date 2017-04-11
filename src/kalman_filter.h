@@ -22,7 +22,10 @@ public:
 
   // measurement covariance matrix
   Eigen::MatrixXd R_;
-
+  
+  // random acceleration vector
+  Eigen::VectorXd u_;
+  
   /**
    * Constructor
    */
@@ -63,6 +66,9 @@ public:
    * @param z The measurement at k+1
    */
   void UpdateEKF(const Eigen::VectorXd &z);
+  
+  Eigen::VectorXd H_func(const Eigen::VectorXd& x_state);
+  
 
 };
 

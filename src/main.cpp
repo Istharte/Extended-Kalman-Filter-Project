@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
   vector<GroundTruthPackage> gt_pack_list;
 
   string line;
-
+  
   // prep the measurement packages (each line represents a measurement at a
   // timestamp)
   while (getline(in_file_, line)) {
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
       meas_package.timestamp_ = timestamp;
       measurement_pack_list.push_back(meas_package);
     }
-
+    
     // read ground truth data to compare later
     float x_gt;
     float y_gt;
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
 
   // Create a Fusion EKF instance
   FusionEKF fusionEKF;
-
+  
   // used to compute the RMSE later
   vector<VectorXd> estimations;
   vector<VectorXd> ground_truth;
