@@ -29,8 +29,8 @@ FusionEKF::FusionEKF() {
          0,0,0,0;
   
   //measurement covariance matrix - laser
-  R_laser_ << 0.0225, 0,
-        0, 0.0225;
+  R_laser_ << 0.000225, 0,
+        0, 0.000225;
 
   //measurement covariance matrix - radar
   R_radar_ << 0.09, 0, 0,
@@ -141,8 +141,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   ekf_.F_(1, 3) = dt;
   
   // set the acceleration noize components
-  noise_ax = 40;
-  noise_ay = 40;
+  noise_ax = 9;
+  noise_ay = 9;
   
   //set the process covariance matrix Q
   ekf_.Q_ <<  dt_4/4*noise_ax, 0, dt_3/2*noise_ax, 0,
@@ -150,12 +150,16 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
              dt_3/2*noise_ax, 0, dt_2*noise_ax, 0,
              0, dt_3/2*noise_ay, 0, dt_2*noise_ay;
   
+  noise_ax = 0;
+  noise_ax = 0;
   ekf_.u_ << noise_ax * dt_2/2, noise_ay * dt_2/2, noise_ax * dt, noise_ay * dt;
   
   // Predict
   if(dt>0.05)
   {
     ekf_.Predict();
+  } else {
+    cout << "Laser and Rader are simultaneous measurement. Skip predict.\n";
   }
   
   /*****************************************************************************
