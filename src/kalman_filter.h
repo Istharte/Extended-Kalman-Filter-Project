@@ -23,9 +23,6 @@ public:
   // measurement covariance matrix
   Eigen::MatrixXd R_;
   
-  // random acceleration vector
-  Eigen::VectorXd u_;
-  
   /**
    * Constructor
    */
