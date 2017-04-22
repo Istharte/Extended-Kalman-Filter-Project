@@ -123,6 +123,11 @@ public:
    * @param meas_package The measurement at k+1
    */
   void UpdateRadar(MeasurementPackage meas_package);
+
+private:
+  // tool object used to compute Jacobian and RMSE
+  Tools tools;
+  
 };
 
 #endif /* UKF_H */
