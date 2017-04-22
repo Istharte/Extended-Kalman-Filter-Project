@@ -31,7 +31,13 @@ public:
 
   ///* predicted sigma points matrix
   MatrixXd Xsig_pred_;
-
+  
+  // measurement noise covariance matrix for laser
+  MatrixXd R_laser_;
+  
+  // measurement noise covariance matrix for radar
+  MatrixXd R_radar_;
+  
   ///* time when the state is true, in us
   long long time_us_;
 
@@ -67,6 +73,12 @@ public:
   
   // Sigma points dimension
   int n_sigma_;
+  
+  // measurement dimension laser
+  const int n_laser_;
+  
+  // measurement dimension radar
+  const int n_radar_;
   
   ///* Sigma point spreading parameter
   double lambda_;
