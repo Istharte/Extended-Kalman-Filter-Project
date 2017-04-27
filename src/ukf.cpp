@@ -43,7 +43,7 @@ UKF::UKF() : n_laser_(2), n_radar_(3) {
   std_a_ = 2;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 2;
+  std_yawdd_ = 3.0e-1;
 
   // Laser measurement noise standard deviation position1 in m
   std_laspx_ = 0.15;
@@ -98,7 +98,7 @@ UKF::UKF() : n_laser_(2), n_radar_(3) {
   R_radar_ << std_radr_*std_radr_, 0, 0,
               0, std_radphi_*std_radphi_, 0,
               0, 0,std_radrd_*std_radrd_;
-
+  
 }
 
 UKF::~UKF() {}
@@ -156,11 +156,8 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     float dt = (meas_package.timestamp_ -time_us_) / 1.0e6;  //dt - expressed in seconds
     time_us_ = meas_package.timestamp_;
     
-    if(dt>1e-5)
-    {
-      // Predict
-      UKF::Prediction(dt);
-    }
+    // Predict
+    UKF::Prediction(dt);
     
     /*****************************************************************************
      *  Update
@@ -191,7 +188,8 @@ void UKF::Prediction(double delta_t) {
   Complete this function! Estimate the object's location. Modify the state
   vector, x_. Predict sigma points, the state, and the state covariance matrix.
   */
-    //create sigma point matrix
+  
+  //create sigma point matrix
   MatrixXd Xsig = MatrixXd(n_x_, 2 * n_x_ + 1);
 
   //calculate square root of P
@@ -207,7 +205,7 @@ void UKF::Prediction(double delta_t) {
     Xsig.col(i+1+n_x_) = x_ - sqrt(lambda_+n_x_) * A.col(i);
   }
   
-    //create augmented mean vector
+  //create augmented mean vector
   VectorXd x_aug = VectorXd(n_aug_);
 
   //create augmented state covariance
@@ -251,7 +249,7 @@ void UKF::Prediction(double delta_t) {
     double yawd = Xsig_aug(4,i);
     double nu_a = Xsig_aug(5,i);
     double nu_yawdd = Xsig_aug(6,i);
-
+    
     //predicted state values
     double px_p, py_p;
     
@@ -295,6 +293,7 @@ void UKF::Prediction(double delta_t) {
   for (int i = 0; i < n_sigma_; i++) {  //iterate over sigma points
     x_ = x_ + weights_(i) * Xsig_pred_.col(i);
   }
+  
   //angle normalization
   tools.NormAngle(x_(3));
   
@@ -310,7 +309,8 @@ void UKF::Prediction(double delta_t) {
     
     P_ = P_ + weights_(i) * x_diff * x_diff.transpose() ;
   }
-  
+  // print the output
+
 }
 
 /**
@@ -323,38 +323,39 @@ void UKF::Update(MeasurementPackage meas_package, const int &n_z) {
   MatrixXd Zsig = MatrixXd(n_z, n_sigma_);
   
   VectorXd z = VectorXd(n_z);
-  cout << n_z <<"\n";
+  
   //transform sigma points into measurement space
   if (n_z == 3) {   //radar sigma points
-      for (int i = 0; i < n_sigma_; i++) {  //2n+1 simga points
-        // extract values for better readibility
-        double p_x = Xsig_pred_(0,i);
-        double p_y = Xsig_pred_(1,i);
-        double v  = Xsig_pred_(2,i);
-        double yaw = Xsig_pred_(3,i);
-        
-        double v1 = cos(yaw)*v;
-        double v2 = sin(yaw)*v;
-    
-        // measurement model
-        Zsig(0,i) = sqrt(p_x*p_x + p_y*p_y);            //r
-        if (p_x != 0) {
-          Zsig(1,i) = atan2(p_y,p_x);                   //phi
-        } else {
-          Zsig(1,i) = M_PI / 2;
-        }
-        
-        if (fabs(Zsig(0,i)) > 1e-5)
-        {
-          Zsig(2,i) = (p_x*v1 + p_y*v2 ) / Zsig(0,i);   //r_dot
-        } else {
-          Zsig(2,i) = v;
-        }
+    for (int i = 0; i < n_sigma_; i++) {  //2n+1 simga points
+      // extract values for better readibility
+      double p_x = Xsig_pred_(0,i);
+      double p_y = Xsig_pred_(1,i);
+      double v  = Xsig_pred_(2,i);
+      double yaw = Xsig_pred_(3,i);
+      
+      double v1 = cos(yaw)*v;
+      double v2 = sin(yaw)*v;
+      
+      // measurement model
+      Zsig(0,i) = sqrt(p_x*p_x + p_y*p_y);            //r
+      if (p_x != 0) {
+        Zsig(1,i) = atan2(p_y,p_x);                   //phi
+      } else {
+        Zsig(1,i) = M_PI / 2;
       }
       
-      z << meas_package.raw_measurements_(0),
-           meas_package.raw_measurements_(1),
-           meas_package.raw_measurements_(2);
+      if (fabs(Zsig(0,i)) > 1e-5)
+      {
+        Zsig(2,i) = (p_x*v1 + p_y*v2 ) / Zsig(0,i);   //r_dot
+      } else {
+        Zsig(2,i) = v;
+      }
+      
+    }
+    
+    z << meas_package.raw_measurements_(0),
+         meas_package.raw_measurements_(1),
+         meas_package.raw_measurements_(2);
   
   } else if (n_z == 2) {    //laser sigma points
     //transform sigma points into measurement space
@@ -405,6 +406,7 @@ void UKF::Update(MeasurementPackage meas_package, const int &n_z) {
   
   //angle normalization
   tools.NormAngle(x_(3));
+  
   if (n_z == 3) {
     NIS_radar_ = z_diff_p.transpose() * Si * z_diff_p;
   } else if (n_z == 2) {

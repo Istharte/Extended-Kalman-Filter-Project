@@ -119,7 +119,7 @@ public:
   void Update(MeasurementPackage meas_package, const int &n_z);
 
 private:
-  // tool object used to compute Jacobian and RMSE
+  // tool object used to compute RMSE etc.
   Tools tools;
   
 };
